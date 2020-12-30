@@ -19,7 +19,6 @@ RUN /bin/bash -c "source ~/.bashrc"
 RUN python3 -m pip install pip --upgrade
 RUN python3 -m pip install wheel torch torchvision  easydict opencv-python numpy torchsummary tensorboard scikit-learn 
 
-
 RUN apt-get update  \
 	&& apt-get install -y --no-install-recommends ros-noetic-jsk-recognition-msgs \
 	&& rm -rf /var/lib/apt/lists/*

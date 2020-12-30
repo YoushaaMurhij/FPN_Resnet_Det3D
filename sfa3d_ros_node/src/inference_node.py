@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
-from autoware_msgs.msg import DetectedObjectArray, DetectedObject
+#from autoware_msgs.msg import DetectedObjectArray, DetectedObject
+from jsk_recognition_msgs.msg import BoundingBox, BoundingBoxArray
 import rospy
 import rospkg
 import numpy as np
@@ -19,7 +20,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 import cv2
 import torch
 
-sys.path.append('./')
+sys.path.append('./src/FCN_Resnet_Det3D/SFA3D')
 
 from sfa.models.model_utils import create_model
 from sfa.utils.evaluation_utils import draw_predictions, convert_det_to_real_values
@@ -64,7 +65,7 @@ def on_scan(scan):
     with torch.no_grad():
         detections, bev_map, fps = do_detect(configs, model, bev_map, is_front=True)
     print(fps)
-    objects_msg = DetectedObjectArray()
+    objects_msg = BoundingBoxArray()
     objects_msg.header.stamp = rospy.Time.now()
     objects_msg.header.frame_id = scan.header.frame_id
     flag = False
@@ -81,16 +82,16 @@ def on_scan(scan):
                 z = _z + cnf.boundary['minZ']
                 w = _w / cnf.BEV_WIDTH * cnf.bound_size_y
                 l = _l / cnf.BEV_HEIGHT * cnf.bound_size_x
-                obj = DetectedObject()
+                obj = BoundingBox()
                 obj.header.stamp = rospy.Time.now()
                 obj.header.frame_id = scan.header.frame_id
 
-                obj.score = 0.9
-                obj.pose_reliable = True
+                #obj.score = 0.9
+                #obj.pose_reliable = True
                 
-                obj.space_frame = scan.header.frame_id
+                #obj.space_frame = scan.header.frame_id
                 obj.label = class_name
-                obj.score = _score
+                #obj.score = _score
                 obj.pose.position.x = x
                 obj.pose.position.y = y
                 obj.pose.position.z = z
@@ -103,22 +104,20 @@ def on_scan(scan):
                 obj.dimensions.x = l
                 obj.dimensions.y = w
                 obj.dimensions.z = _h
-                objects_msg.objects.append(obj)
+                objects_msg.boxes.append(obj)
     if flag is True:
         pub.publish(objects_msg)
         
     stop = timeit.default_timer()
     print('Time: ', stop - start)
     
-
-
 if __name__ == '__main__':
     rospack = rospkg.RosPack()
-    package_path = rospack.get_path('super_fast_object_detection')
+    package_path = rospack.get_path('sfa3d_ros_node')
     configs = parse_demo_configs()
-    configs.pretrained_path = package_path + '/checkpoints/fpn_resnet_18/fpn_resnet_18_epoch_300.pth'
+    configs.pretrained_path = './src/FCN_Resnet_Det3D/SFA3D/checkpoints/fpn_resnet_18/fpn_resnet_18_epoch_300.pth'
     model = create_model(configs)
-    print('\n\n' + '-*=' * 30 + '\n\n')
+    print('\n\n' + '-.-' * 30 + '\n\n')
     assert os.path.isfile(configs.pretrained_path), "No file at {}".format(configs.pretrained_path)
     model.load_state_dict(torch.load(configs.pretrained_path, map_location='cuda:0'))
     print('Loaded weights from {}\n'.format(configs.pretrained_path))
@@ -129,6 +128,6 @@ if __name__ == '__main__':
 
     print("Started Node")
     rospy.init_node('sfa_ros_node', anonymous=True)
-    pub = rospy.Publisher('detected_objects', DetectedObjectArray, queue_size=10)
-    rospy.Subscriber("points_raw", PointCloud2, on_scan)
+    pub = rospy.Publisher('detected_objects', BoundingBoxArray, queue_size=10)
+    rospy.Subscriber("/middleVLP32C/velodyne_points", PointCloud2, on_scan)
     rospy.spin()
