@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
-#from autoware_msgs.msg import DetectedObjectArray, DetectedObject
 from jsk_recognition_msgs.msg import BoundingBox, BoundingBoxArray
 import rospy
 import rospkg
 import numpy as np
 import timeit
-
-import argparse
 import sys
 import os
 import time
 import warnings
-import zipfile
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -52,7 +48,6 @@ def euler_to_quaternion(yaw, pitch, roll):
 
 def on_scan(scan):
     start = timeit.default_timer()
-    rospy.loginfo("Got scan")
     gen = []
     for p in pc2.read_points(scan, field_names = ("x", "y", "z", "intensity"), skip_nans=True):
         gen.append(np.array([p[0], p[1], p[2], p[3]/100.0]))
@@ -85,13 +80,7 @@ def on_scan(scan):
                 obj = BoundingBox()
                 obj.header.stamp = rospy.Time.now()
                 obj.header.frame_id = scan.header.frame_id
-
-                #obj.score = 0.9
-                #obj.pose_reliable = True
-                
-                #obj.space_frame = scan.header.frame_id
-                obj.label = class_name
-                #obj.score = _score
+                obj.label = j
                 obj.pose.position.x = x
                 obj.pose.position.y = y
                 obj.pose.position.z = z
@@ -117,17 +106,14 @@ if __name__ == '__main__':
     configs = parse_demo_configs()
     configs.pretrained_path = './src/FCN_Resnet_Det3D/SFA3D/checkpoints/fpn_resnet_18/fpn_resnet_18_epoch_300.pth'
     model = create_model(configs)
-    print('\n\n' + '-.-' * 30 + '\n\n')
     assert os.path.isfile(configs.pretrained_path), "No file at {}".format(configs.pretrained_path)
     model.load_state_dict(torch.load(configs.pretrained_path, map_location='cuda:0'))
-    print('Loaded weights from {}\n'.format(configs.pretrained_path))
     configs.device = torch.device('cpu' if configs.no_cuda else 'cuda:{}'.format(configs.gpu_idx))
     model = model.to(device=configs.device)
     model.eval()
-    
 
-    print("Started Node")
+    print("SFA3D node has started!")
     rospy.init_node('sfa_ros_node', anonymous=True)
-    pub = rospy.Publisher('detected_objects', BoundingBoxArray, queue_size=10)
+    pub = rospy.Publisher('/detected_objects', BoundingBoxArray, queue_size=10)
     rospy.Subscriber("/middleVLP32C/velodyne_points", PointCloud2, on_scan)
     rospy.spin()
