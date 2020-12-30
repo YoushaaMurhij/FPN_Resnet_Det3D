@@ -36,9 +36,9 @@ ID_TO_CLASS_NAME = {
     0: 'pedestrian',
     1: 'car',
     2: 'cyclist',
-    -3: 'truck',
-    -99: 'tram',
-    -1: 'unknown'
+   -3: 'truck',
+  -99: 'tram',
+   -1: 'unknown'
 }
 
 def euler_to_quaternion(yaw, pitch, roll):
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     
 
     print("Started Node")
-    rospy.init_node('SuperFastObjectDetection', anonymous=True)
+    rospy.init_node('sfa_ros_node', anonymous=True)
     pub = rospy.Publisher('detected_objects', DetectedObjectArray, queue_size=10)
     rospy.Subscriber("points_raw", PointCloud2, on_scan)
     rospy.spin()
