@@ -17,7 +17,7 @@ RUN /bin/bash -c "source ~/.bashrc"
 
 # Update pip & install pytorch
 RUN python3 -m pip install pip --upgrade
-RUN python3 -m pip install wheel torch torchvision  easydict opencv-python numpy torchsummary tensorboard scikit-learn 
+RUN python3 -m pip install wheel torch torchvision  easydict opencv-python numpy torchsummary tensorboard scikit-learn tqdm
 
 RUN apt-get update  \
 	&& apt-get install -y --no-install-recommends ros-noetic-jsk-recognition-msgs \

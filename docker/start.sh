@@ -17,6 +17,7 @@ docker run -it -d --rm \
     --privileged \
     --name sfa3d \
     --net "host" \
+    --shm-size=8192M \
     -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
     -v $workspace_dir/:/home/docker_sfa3d/catkin_ws:rw \
     x64noetic/sfa3d:latest
