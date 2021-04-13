@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build . -t x64noetic/sfa3d:latest
+docker build . -f docker/Dockerfile -t x64noetic/sfa3d:latest
