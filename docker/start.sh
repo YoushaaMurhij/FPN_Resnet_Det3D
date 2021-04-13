@@ -11,7 +11,6 @@ if [ "$(docker ps -aq -f status=exited -f name=open3d)" ]; then
 fi
 
 docker run -it -d --rm \
-    --gpus all \
     --env="DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --privileged \
