@@ -4,6 +4,6 @@ services:
   - docker
 
 before_install:
-  - ./docker/docker_build.sh 
+  - ./docker/build.sh 
 script:
-  - ./docker/docker_start.sh
+  - ./docker/start.sh
